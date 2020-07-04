@@ -48,30 +48,39 @@ function love.load()
     dtotal2 = 0
     dtotal3 = 0
 
-	gameState = 'start'
+	gameState = 'menu'
+	modeSelect = 1
 end
 
 function love.update(dt)
-	dtotal = dtotal + dt
+ 	dtotal = dtotal + dt
 	error_num = math.random(-8, 8)
-	if dtotal > math.random(0.05, 0.2) then
-		dtotal = 0
-		if ball.y + ball.height/2 + error_num < player1.y + 0.2*player1.height then --if love.keyboard.isDown('w') then
-		    dtotal2 = dtotal2 + dt 
-			player1.dy = -PADDLE_SPEED - 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
-		elseif ball.y + ball.height/2 + error_num > player1.y + 0.8*player1.height then --elseif love.keyboard.isDown('s') then
-		    dtotal2 = dtotal2 + dt  
-			player1.dy = PADDLE_SPEED + 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
-		else
-			player1.dy = 0
-			dtotal2 = 0
+	if modeSelect == 1 then
+		if dtotal > math.random(0.05, 0.2) then
+			dtotal = 0
+			if ball.y + ball.height/2 + error_num < player1.y + 0.2*player1.height then 
+			    dtotal2 = dtotal2 + dt 
+				player1.dy = -PADDLE_SPEED - 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
+			elseif ball.y + ball.height/2 + error_num > player1.y + 0.8*player1.height then
+			    dtotal2 = dtotal2 + dt  
+				player1.dy = PADDLE_SPEED + 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
+			else
+				player1.dy = 0
+				dtotal2 = 0
+			end
 		end
-	end
-    
-    --[[ error_num = math.random(-5, 5)
-    if ball.y + ball.height/2 + error_num < player1.y + 0.8*player1.height and ball.y + ball.height/2 + error_num > player1.y + 0.2*player1.height then
-        player1.dy = 0
-    end --]]
+	elseif modeSelect == 2 then
+		if love.keyboard.isDown('w') then
+	        dtotal2 = dtotal2 + dt  
+		    player1.dy = math.max(-PADDLE_SPEED - 0.5 * PADDLE_ACCELERATION * (dtotal2)^2, -500)
+	    elseif love.keyboard.isDown('s') then
+	        dtotal2 = dtotal2 + dt 
+		    player1.dy = math.min(PADDLE_SPEED + 0.5 * PADDLE_ACCELERATION * (dtotal2)^2, 500)
+	    else
+		    player1.dy = 0
+		    dtotal2 = 0
+		end
+	end 
 
 	if love.keyboard.isDown('up') then
 	    dtotal3 = dtotal3 + dt  
@@ -139,10 +148,20 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
+    if gameState == 'menu' then
+    	if key == 'up' or key == 'w' then
+    	    modeSelect = 1
+    	elseif key == 'down' or key =='s' then
+    		modeSelect = 2
+    	end
+    end
+
 	if key == 'escape' then 
 		love.event.quit()
-	elseif key == 'enter' or key == 'return' then 
-		if gameState == 'start' then
+	elseif key == 'enter' or key == 'return' then
+	    if gameState == 'menu' then
+	        gameState = 'instructions'  
+		elseif gameState == 'start' then
 		    player1Score = 0
 		    player2Score = 0
 		    message = '' 
@@ -159,19 +178,47 @@ function love.draw()
 
 	love.graphics.clear(0.2, 0.21, 0.3, 1)
 
-    love.graphics.setFont(smallFont)
-	love.graphics.printf(message, 0, 20, VIRTUAL_WIDTH, 'center')
+	if gameState == 'menu' then
+		love.graphics.setFont(scoreFont)
+		love.graphics.printf('PONG', 0, 20, VIRTUAL_WIDTH, 'center')
 
-    love.graphics.setFont(scoreFont)
-    love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
-    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
+		love.graphics.setFont(smallFont)
+		love.graphics.printf('Choose a mode:', 0, 100, VIRTUAL_WIDTH, 'center')
+		if modeSelect == 1 then
+		    love.graphics.printf('> 1 Player', -4, 120, VIRTUAL_WIDTH, 'center')
+		    love.graphics.printf('2 Player', 0, 140, VIRTUAL_WIDTH, 'center')
+		elseif modeSelect == 2 then
+			love.graphics.printf('1 Player', 0, 120, VIRTUAL_WIDTH, 'center')
+		    love.graphics.printf('> 2 Player', -4, 140, VIRTUAL_WIDTH, 'center')
+		end
 
-	ball:render()
-	player1:render()
-	player2:render()
+	elseif gameState == 'instructions' then
+		if modeSelect == 1 then
+		    love.graphics.setFont(smallFont)
+		    love.graphics.printf('You are player 2', 0, 100, VIRTUAL_WIDTH, 'center')
+		    love.graphics.printf("Press up arrowkey to move up, down arrowkey to move down", 0, 120, VIRTUAL_WIDTH, 'center')
+		    love.graphics.printf('First person to get 5 points wins', 0, 140, VIRTUAL_WIDTH, 'center')
+		elseif modeSelect == 2 then
+			love.graphics.setFont(smallFont)
+			love.graphics.printf("Player 1: Press 'w' to move up, 's' to move down" , 0, 100, VIRTUAL_WIDTH, 'center')
+            love.graphics.printf("Player 2: Press up arrowkey to move up, down arrowkey to move down", 0, 120, VIRTUAL_WIDTH, 'center')
+            love.graphics.printf('First person to get 5 points wins', 0, 140, VIRTUAL_WIDTH, 'center')             
+        end
+    else 
+	    love.graphics.setFont(smallFont)
+		love.graphics.printf(message, 0, 20, VIRTUAL_WIDTH, 'center')
 
-	displayFPS()
-	displaySpeed()
+	    love.graphics.setFont(scoreFont)
+	    love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
+	    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
+
+		ball:render()
+		player1:render()
+		player2:render()
+
+		displayFPS()
+		displaySpeed()
+	end
 
 	push:apply('end')
 end
