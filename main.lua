@@ -61,17 +61,19 @@ function love.update(dt)
  	dtotal = dtotal + dt
 	error_num = math.random(-8, 8)
 	if modeSelect == 1 then
-		if dtotal > math.random(0.05, 0.2) then
-			dtotal = 0
-			if ball.y + ball.height/2 + error_num < player1.y + 0.2*player1.height then 
-			    dtotal2 = dtotal2 + dt 
-				player1.dy = -PADDLE_SPEED - 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
-			elseif ball.y + ball.height/2 + error_num > player1.y + 0.8*player1.height then
-			    dtotal2 = dtotal2 + dt  
-				player1.dy = PADDLE_SPEED + 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
-			else
-				player1.dy = 0
-				dtotal2 = 0
+		if ball.x < VIRTUAL_WIDTH * 0.8 and ball.dx < 0 then
+			if dtotal > math.random(0.05, 0.2) then
+				dtotal = 0
+				if ball.y + ball.height/2 + error_num < player1.y + 0.2*player1.height then 
+				    dtotal2 = dtotal2 + dt 
+					player1.dy = -PADDLE_SPEED - 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
+				elseif ball.y + ball.height/2 + error_num > player1.y + 0.8*player1.height then
+				    dtotal2 = dtotal2 + dt  
+					player1.dy = PADDLE_SPEED + 0.5 * PADDLE_ACCELERATION * (dtotal2)^2
+				else
+					player1.dy = 0
+					dtotal2 = 0
+				end
 			end
 		end
 	elseif modeSelect == 2 then
